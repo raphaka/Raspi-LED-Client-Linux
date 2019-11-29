@@ -1,28 +1,34 @@
 import java.awt.*;
 import java.awt.image.*;
+import java.io.*;
+import java.net.*;
 
 public class RaspiLedClient {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception{
         //screen size
         int screenW     = 3440;
         int screenH     = 1440;
         //
         int pixelSkip = 1;
-        int[] avgColor;
+        String hex;
         //variables for taking the screenshot
         int[] screenData;
         BufferedImage screenshot;
         Robot bot;
         Rectangle dispBounds = new Rectangle(new Dimension(screenW,screenH));
 
+        InetAddress IPAddress = InetAddress.getByName("192.168.2.106");
+        DatagramSocket clientSocket = new DatagramSocket();
+
         try   {
       		bot = new Robot();
           while(true){
             screenshot = bot.createScreenCapture(dispBounds);
             screenData = ((DataBufferInt)screenshot.getRaster().getDataBuffer()).getData();
-          	avgColor = getAvgScreenColor(screenW, screenH, pixelSkip, screenData);
-            System.out.println("R = " + avgColor[0] + ";   G = "+ avgColor[1] + ";   B = " + avgColor[2] );
+          	hex = getAvgScreenColor(screenW, screenH, pixelSkip, screenData);
+            System.out.println("RGB = " + hex);
+            clientSocket.send(new DatagramPacket(hex.getBytes(), 6, IPAddress, 1337));
           }
       	}
       	catch (AWTException e)  {
@@ -30,31 +36,31 @@ public class RaspiLedClient {
       		System.exit(0);
       	}
 
-
+        clientSocket.close();
     }
 
-    private static int[] getAvgScreenColor(int screenW, int screenH, int pixelSkip, int[] screenData){
+    private static String getAvgScreenColor(int screenW, int screenH, int pixelSkip, int[] screenData){
       int pixel;
       int r = 0;
       int g = 0;
       int b = 0;
       int[] col = new int[3];
+      String hex;
 
       for(int i = 0; i < screenH; i += pixelSkip){
         for(int j = 0; j < screenW; j += pixelSkip){
-
-                            pixel = screenData[ i*screenW + j ];
-                            r += 0xff & (pixel>>16);
+          pixel = screenData[ i*screenW + j ];
+          r += 0xff & (pixel>>16);
           g += 0xff & (pixel>>8 );
           b += 0xff &  pixel;
-
         }
       }
 
       col[0]  = r / (screenH/pixelSkip * screenW/pixelSkip);
       col[1]  = g / (screenH/pixelSkip * screenW/pixelSkip);
       col[2]  = b / (screenH/pixelSkip * screenW/pixelSkip);
-      return col;
+      hex = String.format("%02x%02x%02x", col[0], col[1], col[2]);
+      return hex;
     }
 
 }
