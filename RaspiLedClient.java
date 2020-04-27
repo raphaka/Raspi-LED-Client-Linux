@@ -1,14 +1,15 @@
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
-import java.net.*;
+import java.net.*; 
 
 public class RaspiLedClient {
 
     public static void main(String[] args) throws Exception{
         //screen size
-        int screenW     = 3440;
-        int screenH     = 1440;
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int screenW     = (int)screenSize.getWidth();
+        int screenH     = (int)screenSize.getHeight();
         //
         int pixelSkip = 1;
         String hex;
@@ -18,7 +19,7 @@ public class RaspiLedClient {
         Robot bot;
         Rectangle dispBounds = new Rectangle(new Dimension(screenW,screenH));
 
-        InetAddress IPAddress = InetAddress.getByName("192.168.2.106");
+        InetAddress IPAddress = InetAddress.getByName(args[0]);
         DatagramSocket clientSocket = new DatagramSocket();
 
         try   {

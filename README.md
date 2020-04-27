@@ -1,5 +1,8 @@
 # Raspi-LED-Client-Linux
 A Client which streams the average display color to the Raspberry pi via UDP
 
-compile and run with  
-`javac RaspiLedClient.java && java RaspiLedClient`
+compile with  
+`javac RaspiLedClient.java`  
+
+run with  
+`java RaspiLedClient <api-host>`  
