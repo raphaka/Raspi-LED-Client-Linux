@@ -10,7 +10,7 @@ public class RaspiLedClient {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int screenW     = (int)screenSize.getWidth();
         int screenH     = (int)screenSize.getHeight();
-        //
+
         int pixelSkip = 1;
         String hex;
         //variables for taking the screenshot
@@ -19,17 +19,32 @@ public class RaspiLedClient {
         Robot bot;
         Rectangle dispBounds = new Rectangle(new Dimension(screenW,screenH));
 
-        InetAddress IPAddress = InetAddress.getByName(args[0]);
+        InetAddress ipAddress = InetAddress.getByName(args[0]);
         DatagramSocket clientSocket = new DatagramSocket();
 
+        String urlString = new StringBuilder("http:/").append(ipAddress).append(":42069/set/stream").toString();
+        URL streamUrl = new URL(urlString);
+        
+        try{
+            HttpURLConnection con = (HttpURLConnection) streamUrl.openConnection();
+            con.setRequestMethod("GET");
+            if (con.getResponseCode() != 200){
+                System.out.println("ERROR: Stream mode could not be started on backend.");
+                System.exit(1);
+            }
+        }catch(ConnectException e){
+            System.out.println("ERROR: Backend unavailable.");
+            System.exit(1);
+        }
+        
         try   {
-      		bot = new Robot();
-          while(true){
+            bot = new Robot();
+            while(true){
             screenshot = bot.createScreenCapture(dispBounds);
             screenData = ((DataBufferInt)screenshot.getRaster().getDataBuffer()).getData();
-          	hex = getAvgScreenColor(screenW, screenH, pixelSkip, screenData);
+            hex = getAvgScreenColor(screenW, screenH, pixelSkip, screenData);
             System.out.println("RGB = " + hex);
-            clientSocket.send(new DatagramPacket(hex.getBytes(), 6, IPAddress, 1337));
+            clientSocket.send(new DatagramPacket(hex.getBytes(), 6, ipAddress, 1337));
           }
       	}
       	catch (AWTException e)  {
