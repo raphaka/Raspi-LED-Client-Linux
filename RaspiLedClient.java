@@ -19,10 +19,21 @@ public class RaspiLedClient {
         Robot bot;
         Rectangle dispBounds = new Rectangle(new Dimension(screenW,screenH));
 
+        String restPort = "42069";
+        int udpPort = 1337;
+        
+        if (args.length == 3){
+            restPort = args[1];
+            udpPort = Integer.parseInt(args[2]);
+        }else if (args.length != 1){
+            System.out.println("Usage:\njava RaspiLedClient <host>\njava RaspiLedClient <host> <rest_port> <udp_port>");
+            System.exit(1);
+        }
+        
         InetAddress ipAddress = InetAddress.getByName(args[0]);
-        DatagramSocket clientSocket = new DatagramSocket();
 
-        String urlString = new StringBuilder("http:/").append(ipAddress).append(":42069/set/stream").toString();
+        
+        String urlString = new StringBuilder("http:/").append(ipAddress).append(":").append(restPort).append("/set/stream").toString();
         URL streamUrl = new URL(urlString);
         
         try{
@@ -37,6 +48,8 @@ public class RaspiLedClient {
             System.exit(1);
         }
         
+        DatagramSocket clientSocket = new DatagramSocket();
+                
         try   {
             bot = new Robot();
             while(true){
@@ -44,7 +57,7 @@ public class RaspiLedClient {
             screenData = ((DataBufferInt)screenshot.getRaster().getDataBuffer()).getData();
             hex = getAvgScreenColor(screenW, screenH, pixelSkip, screenData);
             System.out.println("RGB = " + hex);
-            clientSocket.send(new DatagramPacket(hex.getBytes(), 6, ipAddress, 1337));
+            clientSocket.send(new DatagramPacket(hex.getBytes(), 6, ipAddress, udpPort));
           }
       	}
       	catch (AWTException e)  {
