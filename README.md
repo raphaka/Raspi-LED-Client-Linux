@@ -6,3 +6,5 @@ compile with
 
 run with  
 `java RaspiLedClient <api-host>`  
+or  
+`java RaspiLedClient <api-host> <rest port> <udp port>`  
